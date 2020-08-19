@@ -8,6 +8,10 @@
             background-color: black;
             color: white;
         }
+        
+        div{
+            padding:10px;
+        }
     </style>
 
 </head>
@@ -21,13 +25,15 @@
             <div class="col-sm-4">
                 <input type="file" name="inputfile" id="inputfile"><br />
             </div>
-            <div class="col-sm-4" id="button-space">
+            <div class="col-sm-4">
                 <!--<button onclick="bort.buildSeries(0);">Read File</button><br />-->
             </div>
         </div>
         <div class="row" id="episode-1-dropdown"></div>
         <div class="row" id="episode-2-dropdown"></div>
+        <div class="row" id="button-space"></div>
     </div>
+    
     <div id="output"></div>
 </body>
 <script type="text/javascript" id="connector">
@@ -97,7 +103,6 @@
         buildHTMLString(e1,e2,oe){
             //build the formatted html string: e1 has these words in common with e2: (rendered to div id oe)
             var s = "<h2>" + e1[0].title + " and " + e2[0].title + "</h2>";
-            s += "<h3>Connected words between them</h3>"
             s += "<p>"
             for(var i = 0; i < e2[0].words.length;i++){
                 s += e2[0].words[i];
