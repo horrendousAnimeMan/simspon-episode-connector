@@ -1,0 +1,390 @@
+<!DOCTYPE HTML>
+<title>Simpson Episode Connector</title>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: black;
+            color: white;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="container">
+        <h3>Simpsons Episode Quantum Entanglements</h3>
+        <a>Present the Ancient Tome, formatted with episode titles demarcated thusly: #01x01^.</a>
+        <div class="row">
+            <div class="col-sm-4"> </div>
+            <div class="col-sm-4">
+                <input type="file" name="inputfile" id="inputfile"><br />
+            </div>
+            <div class="col-sm-4" id="button-space">
+                <!--<button onclick="bort.buildSeries(0);">Read File</button><br />-->
+            </div>
+        </div>
+        <div class="row" id="episode-1-dropdown"></div>
+        <div class="row" id="episode-2-dropdown"></div>
+    </div>
+    <div id="output"></div>
+</body>
+<script type="text/javascript" id="connector">
+    let SimpsonBuilder = class {
+        //From a large text file, organize into title and content for each episode.
+        constructor() {
+            console.log("chorus: aaaaaaaaah");
+            this.fullString = ""; //full string with dilineators
+            this.index = 0; //'global' index for this.fullString
+            this.series = new Series();
+        }
+
+        buildDropdowns(e1, e2) {
+            //build dropdowns for DOM element ID's e1, e2.
+            //in this case, document.getElementById("e1");
+            for (var i = 1; i <= 2; i++) {
+                var s = "Episode "+ i +": <select id='";
+                s += "episode-dropdown-";
+                s += i;
+                s += "'>";
+                for (var j = 0; j < this.series.episodes.length; j++) {
+                    s += "<option value='";
+                    s += this.series.episodes[j][0].title;
+                    s += "'>";
+                    s += this.series.episodes[j][0].title;
+                    s += "</option>"
+                }
+                s += "</select>";
+                if (i == 1) {
+                    document.getElementById(e1).innerHTML = s;
+                } else {
+                    document.getElementById(e2).innerHTML = s;
+                }
+            }
+            document.getElementById("button-space").innerHTML = "<button onclick='bort.buttonPressHandler();'>Find Quantum Entanglements</button>";
+        }
+        
+        buttonPressHandler(){
+            var s = [document.getElementById("episode-dropdown-1").value, document.getElementById("episode-dropdown-2").value];            
+            var e1 = this.findEpisodeByTitle(s[0]);
+            var e2 = this.findEpisodeByTitle(s[1]);
+            var e3 = this.getMatchEp(e1,e2);
+            this.buildHTMLString(e1,e3,"output");
+        }
+        
+        findEpisodeByTitle(t){
+            //return the episode with the string title t.
+            for(var i = 0; i < this.series.episodes.length; i++){
+                if(t == this.series.episodes[i][0].title){
+                    return this.series.episodes[i];
+                }
+            }
+            return -1;
+        }
+        
+        getMatchEp(e1,e2) {
+            //get matches for two episodes specified by title instead of doing alllll of them every time.
+            //returns episode for use as matching-episode.
+            //accepts two Episode objects as arguments.
+            var e0 = new Episode();
+            e0.setTitle(e2[0].title);
+            e0.setWords(e1[0].getMatches(e2[0]));
+            return [e0,e0[1]];
+            
+        }
+        
+        buildHTMLString(e1,e2,oe){
+            //build the formatted html string: e1 has these words in common with e2: (rendered to div id oe)
+            var s = "<h2>" + e1[0].title + " and " + e2[0].title + "</h2>";
+            s += "<h3>Connected words between them</h3>"
+            s += "<p>"
+            for(var i = 0; i < e2[0].words.length;i++){
+                s += e2[0].words[i];
+                s += ", ";
+            }
+            s += "</p>";
+            document.getElementById(oe).innerHTML = s;
+        }
+
+        buildAllMatches() {
+            //build matching words for each episode.  this takes way too long.
+            for (var i = 0; i < this.series.episodes.length; i++) {
+                for (var j = 0; j < this.series.episodes.length; j++) {
+                    if (i != j) {
+                        var ne = new Episode();
+                        ne.setTitle(this.series.episodes[j][0].title);
+                        ne.setWords(this.series.episodes[i][0].getMatches(this.series.episodes[j][0]));
+                        this.series.episodes[i][0].addEpisode(ne); //consider renaming addEpisode to addMatchingEpisode, because it technically adds a Matching Episode
+                    }
+                }
+            }
+        }
+
+        buildSeries(i) {
+            //build series of episodes starting at index i.
+            var active = true;
+            var ca = "";
+            var li = i;
+            var se = new Series();
+            while (active == true) {
+                ca = this.fullString.charAt(li);
+                var q = this.isBreak(ca);
+                var e = new Episode();
+                if (ca == "|") {
+                    active = false;
+                }
+                if (ca == "#") {
+                    var ep = this.buildEpisode(li);
+                    se.addEpisode(ep);
+                    li = ep[1];
+                }
+            }
+            this.series = se;
+            return -1;
+        }
+
+        buildEpisode(i) {
+            //build episode starting at index i.  return Episode object and new index.
+            //initialize episode
+            var lisa = new Episode(); //lisa needs braces
+            //dental plan
+            var li = i;
+            //console.log("buildEpisode(i): " + i);
+            var et = this.readTitle(li);
+            //console.log("readTitle(i) @ i= " + i + ": " + et[0] + ", " + et[1]);
+            lisa.setTitle(et[0]);
+            li = et[1];
+            var ct = this.readBook(li);
+            //console.log("" + ct[0] + ", " + ct[1]);
+            for (var g = 0; g < ct[0].length; g++) {
+                lisa.addWord(ct[0][g]);
+            }
+            li = ct[1];
+            return [lisa, li];
+        }
+        readTitle(i) {
+            //read title starting at index i.  returns title and end-of-title index.
+            var active = true;
+            var t = "";
+            var c = "";
+            var li = i; //fuc u
+            while (active == true) {
+                var q = this.fullString.charAt(li);
+                var b = this.isBreak(q);
+                if (q === "#") {
+                    li++;
+                    q = this.fullString.charAt(li);
+                    b = this.isBreak(q);
+                }
+                if (b[2] == false) {
+                    t += q;
+                    li++;
+                } else if (b[2] == true) {
+                    active = false;
+                }
+            }
+            return [t, li];
+        }
+
+        readWord(i) {
+            //read word w starting at index i while active, and return word and word-end index.
+            var active = true;
+            var w = "";
+            var li = i; //local index because last time it was weird
+            while (active == true) {
+                var q = this.fullString.charAt(li); //break into substrings for later versions
+                var b = this.isBreak(q);
+                if (b[0] == false && b[1] == false) {
+                    w += q;
+                    li++;
+                } else if (b[0] == true || b[1] == true || b[2] == true) {
+                    active = false;
+                } else {
+                    //console.log("readWord(i) while(){} default action for char " + q);
+                }
+            }
+
+            //console.log("w: " + w);
+
+            return [w, li];
+        }
+
+        readBook(i) {
+            //read book starting at index i, ending at book-end #.  return array of words.
+            var active = true;
+            var a = [];
+            var c = ""; //memory for charAt
+            var li = i; //local index
+
+            while (active == true) {
+                c = this.fullString.charAt(li);
+                var q = this.isBreak(c);
+                if (c === "^") {
+                    li++;
+                    c = this.fullString.charAt(li);
+                    q = this.isBreak(c);
+                }
+                if (c === "#") {
+                    active = false;
+                }
+                if (q[0] == true) {
+                    li++;
+                }
+                if (q[1] == true) {
+                    li++;
+                }
+                if (q[2] == true) {
+                    active = false;
+                }
+                if (q[0] == false && q[1] == false && q[2] == false) {
+                    //console.log("q[0] == false && q[1] == false && q[2] == false for char: " + c);
+                    var g = this.readWord(li);
+                    a.push(g[0]);
+                    li = g[1];
+                } else {
+                    //console.log("readBook(i) while(){} default action for char: " + c);
+                }
+            }
+            return [a, li];
+        }
+
+        setIndex(i) {
+            //set index to int i.
+            this.index = i;
+        }
+
+        setString(s) {
+            //set this.fullString to contents of text file (usually), String s.
+            this.fullString = s;
+        }
+
+        isBreak(c) {
+            //determine if character c is a break class.
+            return [(c === " " || c === "↵" || c === ' ' || c === " "),
+                ([".", ",", "!", "?", "&", ":", ";", "(", ")", '.', ',', ':', ';', '?', '!', '&', '\n', "[", "]", '[', ']'].includes(c)),
+                (["#", "^", "|"].includes(c))
+            ];
+        }
+    }
+
+    let Episode = class {
+        //title and content.
+        constructor() {
+            this.title = "";
+            this.words = [];
+            this.matchingEpisodes = []; //modified episode objects with its .words sections used for matching words.
+            //so like,
+            //ep.1 will have a 'match' episode for every other episode.
+        }
+
+        getMatches(ep2) {
+            //accepts 2 Episode objects as arguments.
+            //returns data thusly:
+            //Episode 1 has These Words from Episode 2.
+            var matches = []; //store matched words.  doubles as already-found.
+            for (var i = 0; i < this.words.length; i++) {
+                var pt = new PerformanceTracker();
+                //pt.setActive(true);
+                pt.setName("getMatches() i-loop");
+                pt.setStart();
+                var w = this.words[i];
+                for (var j = 0; j < ep2.words.length; j++) {
+                    if (w == ep2.words[j]) {
+                        if (matches.includes(w) == false) {
+                            matches.push(w);
+                        }
+                    }
+                }
+                pt.setEnd();
+                pt.displayResult();
+            }
+            return matches;
+        }
+
+        addWord(wIn) {
+            this.words.push(wIn);
+        }
+
+        setWords(wIns) {
+            this.words = wIns;
+        }
+
+        addEpisode(e) {
+            this.matchingEpisodes.push(e);
+        }
+
+        setTitle(tIn) {
+            this.title = tIn;
+        }
+    }
+
+    let Series = class {
+        //the Episodes.
+        constructor() {
+            this.episodes = [];
+        }
+
+        addEpisode(e) {
+            this.episodes.push(e);
+        }
+
+        getSeriesMatches() {
+            //
+        }
+    }
+
+    let PerformanceTracker = class {
+        constructor() {
+            this.t0 = null;
+            this.t1 = null;
+            this.name = "";
+            this.active = false;
+        }
+
+        setActive(b) {
+            this.active = b;
+        }
+
+        setName(s) {
+            this.name = s;
+        }
+
+        setStart() {
+            this.t0 = performance.now();
+        }
+
+        setEnd() {
+            this.t1 = performance.now();
+        }
+
+        displayResult() {
+            if (this.active == true) {
+                console.log("" + this.name + ": " + (this.t1 - this.t0) + "ms");
+                this.setActive(false);
+            }
+        }
+    }
+
+
+
+    //okay first get the hang of reading local text files, before anything else.
+    //hoo boy that was easier said than done...
+    var s = ""; //string literal
+    var slen = 0; //string length
+    let bort = new SimpsonBuilder();
+
+    document.getElementById('inputfile').addEventListener('change', function() {
+        t0 = performance.now(); //track the start of...
+        var f = new FileReader();
+        f.onload = function() {
+            s = f.result; //...then this.
+            slen = s.length; //store the length
+            bort.setString(s);
+            bort.buildSeries(0);
+            bort.buildDropdowns("episode-1-dropdown", "episode-2-dropdown");
+            t1 = performance.now(); //...and end of function.
+        }
+        f.readAsText(this.files[0]); //this executes first...
+    });
+</script>
