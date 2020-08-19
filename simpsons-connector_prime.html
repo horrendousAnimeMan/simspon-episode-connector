@@ -20,7 +20,7 @@
     <div class="container">
         <h3>Simpsons Episode Quantum Entanglements</h3>
         <a>Present the Ancient Tome, formatted with episode titles demarcated thusly: #01x01^.</a>
-        <div class="row">
+        <div class="row">   
             <div class="col-sm-4"> </div>
             <div class="col-sm-4">
                 <input type="file" name="inputfile" id="inputfile"><br />
@@ -94,15 +94,19 @@
             //returns episode for use as matching-episode.
             //accepts two Episode objects as arguments.
             var e0 = new Episode();
-            e0.setTitle(e2[0].title);
-            e0.setWords(e1[0].getMatches(e2[0]));
+            try{
+                e0.setTitle(e2[0].title);
+                e0.setWords(e1[0].getMatches(e2[0]));
+            }catch(e){console.log(e);}
+            
             return [e0,e0[1]];
             
         }
         
         buildHTMLString(e1,e2,oe){
             //build the formatted html string: e1 has these words in common with e2: (rendered to div id oe)
-            var s = "<h2>" + e1[0].title + " and " + e2[0].title + "</h2>";
+            var s = "<h2>" + e1[0].title + "</h2>";
+            s += "<h2>" +e2[0].title + "</h2>";
             s += "<p>"
             for(var i = 0; i < e2[0].words.length;i++){
                 s += e2[0].words[i];
