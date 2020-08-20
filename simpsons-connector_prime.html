@@ -12,6 +12,20 @@
         div{
             padding:10px;
         }
+        
+        .ep{
+            background-color: rgb(32,32,32);
+            color: rgb(196,196,196);
+            align-content:center;
+        }
+        .sb{
+            background-color: rgb(64,64,64);
+            color: rgb(128,128,128);
+        }
+        .ps{
+            background-color: rgb(128,128,128);
+            color: rgb(64,64,64);
+        }
     </style>
 
 </head>
@@ -29,12 +43,15 @@
                 <!--<button onclick="bort.buildSeries(0);">Read File</button><br />-->
             </div>
         </div>
-        <div class="row" id="episode-1-dropdown"></div>
-        <div class="row" id="episode-2-dropdown"></div>
-        <div class="row" id="button-space"></div>
+        <div class="row ep" id="episode-1-dropdown"></div>
+        <div class="row ep" id="episode-2-dropdown"></div>
+        <div class="row ep" id="button-space"></div>
         <div class="row"></div>
-        <div class="row" id="search-bar-space"></div>
-        <div class="row" id="search-button-space"></div>
+        <div class="row sb" id="search-bar-space"></div>
+        <div class="row sb" id="search-button-space"></div>
+        <div class="row"></div>
+        <div class="row ps" id="phrase-search-bar-space"></div>
+        <div class="row ps" id="phrase-search-button-space"></div>
     </div>
     
     <div id="output"></div>
@@ -77,6 +94,19 @@
             //also include the search bar for specific-word search.
             document.getElementById(e3).innerHTML = "Specific Word Search: <input type='text' id='spec-word-search-bar'>";
             document.getElementById("search-button-space").innerHTML = "<button onclick='bort.specWordButtonHandler();'>Find Word</button>";
+            
+            //aaaaand the phrase search.  will combine in next build.
+            document.getElementById("phrase-search-bar-space").innerHTML = "Phrase Search: <input type='text' id='phrase-search-bar'>";
+            document.getElementById("phrase-search-button-space").innerHTML = "<button onclick='bort.phraseButtonHandler();'>Find Phrase</button>";
+        }
+        
+        phraseButtonHandler(){
+            //
+            var p = document.getElementById("phrase-search-bar").value;
+            var a = this.phraseParse(p);           
+            var b = this.findPhrase(a);
+            
+            this.buildHTMLPhrase(p,b,"output");
         }
         
         specWordButtonHandler(){
@@ -109,6 +139,18 @@
             document.getElementById(oe).innerHTML = s;
         }
         
+        buildHTMLPhrase(p,a,oe){
+            //build formatted html string for phrase search.
+            //p: phrase. a: result array.  oe:output element.
+            var s = "<h2>" + p + "</h2><strong>Included in:</strong><p>";
+            for(var i = 0; i < a.length; i++){
+                s += "" + a[i] + "<br />";
+            }
+            s += "</p>";
+            
+            document.getElementById(oe).innerHTML = s;
+        }
+        
         buildHTMLSpecWd(w,a,oe){
             //build the formatted html string for a specific word search.
             //w: word searched, a:result array, oe:output element
@@ -120,6 +162,59 @@
             s += "</p>";
             
             document.getElementById(oe).innerHTML = s;
+        }
+        
+        findPhrase(a){
+            //accepts array of words a.  finds phrase in episodes.
+            var b = []; //results: episode titles
+            
+            //will this work?  i need to check if the episodes are stored
+            //yay!  it will!
+            
+            for(var i = 0; i < this.series.episodes.length; i++){
+                //each episode, search its words.
+                try {
+                    for(var j = 0; j < this.series.episodes[i][0].words.length; j++){
+                        if(a[0].toUpperCase() === this.series.episodes[i][0].words[j].toUpperCase()){
+                            var phraseFound = false;
+
+                            for(var k = 0; k < a.length; k++){
+                                //if all in a[0 + k] == this.series.episodes[i][0].words[j + k];
+                                if(a[0 + k].toUpperCase() === this.series.episodes[i][0].words[j + k].toUpperCase()){
+                                    //string1.toUpperCase() === string2.toUpperCase()
+                                    phraseFound = true;
+                                }else{
+                                    phraseFound = false;
+                                }
+                            }
+
+                            if(phraseFound == true){
+                                b.push(this.series.episodes[i][0].title);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    //Catch Statement
+                    console.log(e);
+                    console.log("findPhrase(a) ijk loop: i: " + i + "j: " + j + "k: " + k);
+                    console.log(this.series.episodes[i]);
+                    console.log(this.series.episodes[i - 1]);
+                    console.log(this.series.episodes.length);
+                }
+            }
+            
+            if(b.length == 0){
+                b.push("-*-"); //bupkis
+            }
+            
+            return b;
+        }
+        
+        phraseParse(s){
+            //pase an array of words from String s.
+            var a = s.split(' ');
+            
+            return a;
         }
         
         findWord(w){
