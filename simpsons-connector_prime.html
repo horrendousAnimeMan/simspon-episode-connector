@@ -32,6 +32,9 @@
         <div class="row" id="episode-1-dropdown"></div>
         <div class="row" id="episode-2-dropdown"></div>
         <div class="row" id="button-space"></div>
+        <div class="row"></div>
+        <div class="row" id="search-bar-space"></div>
+        <div class="row" id="search-button-space"></div>
     </div>
     
     <div id="output"></div>
@@ -46,8 +49,9 @@
             this.series = new Series();
         }
 
-        buildDropdowns(e1, e2) {
+        buildInterface(e1, e2, e3) {
             //build dropdowns for DOM element ID's e1, e2.
+            //build search bar for element id e3.
             //in this case, document.getElementById("e1");
             for (var i = 1; i <= 2; i++) {
                 var s = "Episode "+ i +": <select id='";
@@ -68,15 +72,71 @@
                     document.getElementById(e2).innerHTML = s;
                 }
             }
-            document.getElementById("button-space").innerHTML = "<button onclick='bort.buttonPressHandler();'>Find Quantum Entanglements</button>";
+            document.getElementById("button-space").innerHTML = "<button onclick='bort.epToEpButtonHandler();'>Find Quantum Entanglements</button>";
+            
+            //also include the search bar for specific-word search.
+            document.getElementById(e3).innerHTML = "Specific Word Search: <input type='text' id='spec-word-search-bar'>";
+            document.getElementById("search-button-space").innerHTML = "<button onclick='bort.specWordButtonHandler();'>Find Word</button>";
         }
         
-        buttonPressHandler(){
+        specWordButtonHandler(){
+            var s = document.getElementById("spec-word-search-bar").value;
+            var a = this.findWord(s);
+            
+            this.buildHTMLSpecWd(s,a,"output");
+        }
+        
+        epToEpButtonHandler(){
             var s = [document.getElementById("episode-dropdown-1").value, document.getElementById("episode-dropdown-2").value];            
             var e1 = this.findEpisodeByTitle(s[0]);
             var e2 = this.findEpisodeByTitle(s[1]);
             var e3 = this.getMatchEp(e1,e2);
-            this.buildHTMLString(e1,e3,"output");
+            
+            this.buildHTMLEpToEp(e1,e3,"output");
+        }
+        
+        buildHTMLEpToEp(e1,e2,oe){
+            //build the formatted html string: e1 has these words in common with e2: (rendered to div id oe)
+            var s = "<h2>" + e1[0].title + "</h2>";
+            s += "<h2>" +e2[0].title + "</h2>";
+            s += "<p>"
+            for(var i = 0; i < e2[0].words.length;i++){
+                s += e2[0].words[i];
+                s += ", ";
+            }
+            s += "</p>";
+            
+            document.getElementById(oe).innerHTML = s;
+        }
+        
+        buildHTMLSpecWd(w,a,oe){
+            //build the formatted html string for a specific word search.
+            //w: word searched, a:result array, oe:output element
+            var s = "<h2>" + w + "</h2>";
+            s += "<strong>Included in:</strong><p>";
+            for(var i = 0; i < a.length; i++){
+                s += a[i] + "<br />";
+            }
+            s += "</p>";
+            
+            document.getElementById(oe).innerHTML = s;
+        }
+        
+        findWord(w){
+            //search series for word w.
+            var includedEpTitles = [];
+            
+            for(var i = 0; i < this.series.episodes.length; i++){
+                //every episode, search its words for w.
+                for(var j = 0; j < this.series.episodes[i][0].words.length; j++){
+                    if(w == this.series.episodes[i][0].words[j]){
+                        includedEpTitles.push(this.series.episodes[i][0].title)
+                        i++; //avoid duplicate results
+                    }
+                }
+            }
+            
+            return includedEpTitles;
         }
         
         findEpisodeByTitle(t){
@@ -101,20 +161,7 @@
             
             return [e0,e0[1]];
             
-        }
-        
-        buildHTMLString(e1,e2,oe){
-            //build the formatted html string: e1 has these words in common with e2: (rendered to div id oe)
-            var s = "<h2>" + e1[0].title + "</h2>";
-            s += "<h2>" +e2[0].title + "</h2>";
-            s += "<p>"
-            for(var i = 0; i < e2[0].words.length;i++){
-                s += e2[0].words[i];
-                s += ", ";
-            }
-            s += "</p>";
-            document.getElementById(oe).innerHTML = s;
-        }
+        } 
 
         buildAllMatches() {
             //build matching words for each episode.  this takes way too long.
@@ -391,7 +438,7 @@
             slen = s.length; //store the length
             bort.setString(s);
             bort.buildSeries(0);
-            bort.buildDropdowns("episode-1-dropdown", "episode-2-dropdown");
+            bort.buildInterface("episode-1-dropdown", "episode-2-dropdown","search-bar-space");
             t1 = performance.now(); //...and end of function.
         }
         f.readAsText(this.files[0]); //this executes first...
