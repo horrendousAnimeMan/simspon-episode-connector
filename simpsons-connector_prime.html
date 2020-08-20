@@ -128,11 +128,17 @@
             
             for(var i = 0; i < this.series.episodes.length; i++){
                 //every episode, search its words for w.
-                for(var j = 0; j < this.series.episodes[i][0].words.length; j++){
-                    if(w == this.series.episodes[i][0].words[j]){
-                        includedEpTitles.push(this.series.episodes[i][0].title)
-                        i++; //avoid duplicate results
+                try {
+                    for(var j = 0; j < this.series.episodes[i][0].words.length; j++){
+                        if(w == this.series.episodes[i][0].words[j]){
+                            includedEpTitles.push(this.series.episodes[i][0].title)
+                            i++; //avoid duplicate results
+                        }
                     }
+                } catch (e) {
+                    //Catch Statement
+                    console.log(e);
+                    console.log(this.series.episodes[i]);
                 }
             }
             
