@@ -7,5 +7,3 @@ It will randomly throw a null pointer exception from time to time, but a refresh
 New: Specific word search.
 
 New: Specific phrase search.
-
-Next next next: Turn of phrase search where one word is swapped with the last word of the other one.
