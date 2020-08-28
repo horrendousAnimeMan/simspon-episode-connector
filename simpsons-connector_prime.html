@@ -8,23 +8,25 @@
             background-color: black;
             color: white;
         }
-        
-        div{
-            padding:10px;
+
+        div {
+            padding: 10px;
         }
-        
-        .ep{
-            background-color: rgb(32,32,32);
-            color: rgb(196,196,196);
-            align-content:center;
+
+        .ep {
+            background-color: rgb(32, 32, 32);
+            color: rgb(196, 196, 196);
+            align-content: center;
         }
-        .sb{
-            background-color: rgb(64,64,64);
-            color: rgb(128,128,128);
+
+        .sb {
+            background-color: rgb(64, 64, 64);
+            color: rgb(128, 128, 128);
         }
-        .ps{
-            background-color: rgb(128,128,128);
-            color: rgb(64,64,64);
+
+        .ps {
+            background-color: rgb(128, 128, 128);
+            color: rgb(64, 64, 64);
         }
     </style>
 
@@ -34,7 +36,7 @@
     <div class="container">
         <h3>Simpsons Episode Quantum Entanglements</h3>
         <a>Present the Ancient Tome, formatted with episode titles demarcated thusly: #01x01^.</a>
-        <div class="row">   
+        <div class="row">
             <div class="col-sm-4"> </div>
             <div class="col-sm-4">
                 <input type="file" name="inputfile" id="inputfile"><br />
@@ -47,13 +49,10 @@
         <div class="row ep" id="episode-2-dropdown"></div>
         <div class="row ep" id="button-space"></div>
         <div class="row"></div>
-        <div class="row sb" id="search-bar-space"></div>
-        <div class="row sb" id="search-button-space"></div>
-        <div class="row"></div>
         <div class="row ps" id="phrase-search-bar-space"></div>
         <div class="row ps" id="phrase-search-button-space"></div>
     </div>
-    
+
     <div id="output"></div>
 </body>
 <script type="text/javascript" id="connector">
@@ -71,7 +70,7 @@
             //build search bar for element id e3.
             //in this case, document.getElementById("e1");
             for (var i = 1; i <= 2; i++) {
-                var s = "Episode "+ i +": <select id='";
+                var s = "Episode " + i + ": <select id='";
                 s += "episode-dropdown-";
                 s += i;
                 s += "'>";
@@ -90,192 +89,485 @@
                 }
             }
             document.getElementById("button-space").innerHTML = "<button onclick='bort.epToEpButtonHandler();'>Find Quantum Entanglements</button>";
-            
+            /*
             //also include the search bar for specific-word search.
             document.getElementById(e3).innerHTML = "Specific Word Search: <input type='text' id='spec-word-search-bar'>";
             document.getElementById("search-button-space").innerHTML = "<button onclick='bort.specWordButtonHandler();'>Find Word</button>";
-            
+            */
             //aaaaand the phrase search.  will combine in next build.
             document.getElementById("phrase-search-bar-space").innerHTML = "Phrase Search: <input type='text' id='phrase-search-bar'>";
             document.getElementById("phrase-search-button-space").innerHTML = "<button onclick='bort.phraseButtonHandler();'>Find Phrase</button>";
         }
-        
-        phraseButtonHandler(){
+
+        phraseButtonHandler() {
             //
             var p = document.getElementById("phrase-search-bar").value;
-            var a = this.phraseParse(p);           
-            var b = this.findPhrase(a);
+            var b = this.findPhraseIndexesInSeries(p); //get indices!
+            var q = 0;
+            var ac = true;
+            var res = [];
             
-            this.buildHTMLPhrase(p,b,"output");
+            //sketch out data structure:
+            /*
+                =EPISODE TITLE
+                -Phrase Sentence 1
+                -Phrase Sentence 2
+                -Phrase Sentence n
+            */
+            
+            while(ac === true){
+                var doot = [];
+                
+                if(q >= b.length - 1){
+                    ac = false;
+                }
+                
+                doot.push(this.readTitle(this.getEpisodeStart(b[q]))[0]);
+                doot.push(this.buildSentence(this.getSentenceStartAndEnd(b[q])));
+                res.push(doot);
+                
+                q++; //                                             //ITERATOR
+            }
+            
+            //i swear to god
+            
+            
+            this.buildNewPhraseSection(res, "output");
+            
         }
-        
-        specWordButtonHandler(){
+
+        specWordButtonHandler() {
             var s = document.getElementById("spec-word-search-bar").value;
             var a = this.findWord(s);
-            
-            this.buildHTMLSpecWd(s,a,"output");
+
+            this.buildHTMLSpecWd(s, a, "output");
         }
-        
-        epToEpButtonHandler(){
-            var s = [document.getElementById("episode-dropdown-1").value, document.getElementById("episode-dropdown-2").value];            
+
+        epToEpButtonHandler() {
+            var s = [document.getElementById("episode-dropdown-1").value, document.getElementById("episode-dropdown-2").value];
             var e1 = this.findEpisodeByTitle(s[0]);
             var e2 = this.findEpisodeByTitle(s[1]);
-            var e3 = this.getMatchEp(e1,e2);
-            
-            this.buildHTMLEpToEp(e1,e3,"output");
+            var e3 = this.getMatchEp(e1, e2);
+
+            this.buildHTMLEpToEp(e1, e3, "output");
         }
-        
-        buildHTMLEpToEp(e1,e2,oe){
+
+        buildHTMLEpToEp(e1, e2, oe) {
             //build the formatted html string: e1 has these words in common with e2: (rendered to div id oe)
             var s = "<h2>" + e1[0].title + "</h2>";
-            s += "<h2>" +e2[0].title + "</h2>";
+            s += "<h2>" + e2[0].title + "</h2>";
             s += "<p>"
-            for(var i = 0; i < e2[0].words.length;i++){
+            for (var i = 0; i < e2[0].words.length; i++) {
                 s += e2[0].words[i];
                 s += ", ";
             }
             s += "</p>";
-            
+
             document.getElementById(oe).innerHTML = s;
         }
+
+        buildNewPhraseSection(res,output){
+            //freakin uhhhhhh make the string?
+            //res is [[title,words],[title,words],[title,words]]
+            //output is plaintext output div ID.
+            
+            var s = "";
+            
+            for(var i = 0; i < res.length; i++){
+                //
+                s += "<strong>" + res[i][0] + "</strong>: " + res[i][1] + "<br /><br />";
+            }
+            
+            document.getElementById(output).innerHTML = s;
+        }
         
-        buildHTMLPhrase(p,a,oe){
+        buildHTMLPhrase(p, a, oe) {
             //build formatted html string for phrase search.
             //p: phrase. a: result array.  oe:output element.
             var s = "<h2>" + p + "</h2><strong>Included in:</strong><p>";
-            for(var i = 0; i < a.length; i++){
+            for (var i = 0; i < a.length; i++) {
                 s += "" + a[i] + "<br />";
             }
             s += "</p>";
-            
+
             document.getElementById(oe).innerHTML = s;
         }
-        
-        buildHTMLSpecWd(w,a,oe){
+
+        buildHTMLSpecWd(w, a, oe) {
             //build the formatted html string for a specific word search.
             //w: word searched, a:result array, oe:output element
             var s = "<h2>" + w + "</h2>";
             s += "<strong>Included in:</strong><p>";
-            for(var i = 0; i < a.length; i++){
+            for (var i = 0; i < a.length; i++) {
                 s += a[i] + "<br />";
             }
             s += "</p>";
-            
+
             document.getElementById(oe).innerHTML = s;
         }
-        
-        findPhrase(a){
-            //accepts array of words a.  finds phrase in episodes.
-            var b = []; //results: episode titles
-            
-            //will this work?  i need to check if the episodes are stored
-            //yay!  it will!
-            
-            for(var i = 0; i < this.series.episodes.length; i++){
-                //each episode, search its words.
-                try {
-                    for(var j = 0; j < this.series.episodes[i][0].words.length; j++){
-                        if(a[0].toUpperCase() === this.series.episodes[i][0].words[j].toUpperCase()){
-                            var phraseFound = false;
 
-                            for(var k = 0; k < a.length; k++){
-                                //if all in a[0 + k] == this.series.episodes[i][0].words[j + k];
-                                if(a[0 + k].toUpperCase() === this.series.episodes[i][0].words[j + k].toUpperCase()){
-                                    //string1.toUpperCase() === string2.toUpperCase()
-                                    phraseFound = true;
-                                }else{
-                                    phraseFound = false;
-                                }
-                            }
+        previousNonSentenceBreakIndex(fsi) {
+            //returns next non-break index.
+            var breakFound = false;
+            var i = fsi;
+            while (breakFound == false) {
+                if (this.isSentenceBreak(fullString.charAt(i)) == true) {
+                    i--;
+                } else {
+                    breakFound = true;
+                }
+            }
 
-                            if(phraseFound == true){
-                                b.push(this.series.episodes[i][0].title);
-                            }
-                        }
-                    }
-                } catch (e) {
-                    //Catch Statement
-                    console.log(e);
-                    console.log("findPhrase(a) ijk loop: i: " + i + "j: " + j + "k: " + k);
-                    console.log(this.series.episodes[i]);
-                    console.log(this.series.episodes[i - 1]);
-                    console.log(this.series.episodes.length);
+            return i + 1;
+        }
+
+        nextNonSentenceBreakIndex(fsi) {
+            //returns next non-break index.
+            console.log("nextNonSentenceBreakIndex: " + fsi);
+            var breakFound = false;
+            var i = fsi;
+            while (breakFound == false) {
+                if (this.isSentenceBreak(fullString.charAt(i)) == true) {
+                    i++;
+                } else {
+                    breakFound = true;
+                }
+            }
+
+            return i - 1;
+        }
+
+        findPhraseIndexesInSeries(a) {
+            //accepts string literal, a.
+            //returns full phrase start indices
+            var ah = this.phraseParse(a);
+            var li = 0;
+            var possible = [];
+            var confirmed = [];
+            
+            //look for occurrences of the first word of the phrase.
+            var finding = true;
+            var debugIterator = 0;
+            
+            //console.log("parsed phrase: " + ah + "---------");
+            
+            while(finding == true){
+                
+                debugIterator++;
+                if(debugIterator > this.fullString.length){
+                    //console.log("infinite loop found in findPhraseIndexesInSeries(a)");
+                }
+                
+                if(li > this.fullString.length){
+                    finding = false;
+                }
+                
+                var c0 = this.readWord(li);
+                
+                if(c0[0].toUpperCase() == ah[0].toUpperCase()){
+                    //first word found
+                    possible.push(c0[2]);
+                    c0 = this.readWord(c0[1]);
+                    li = c0[1];
+                }else{
+                    c0 = this.readWord(c0[1]);
+                    li = c0[1];
                 }
             }
             
-            if(b.length == 0){
-                b.push("-*-"); //bupkis
+            if(possible.length == 0){
+                confirmed.push("--phrase not found in series--");
             }
             
-            return b;
-        }
-        
-        phraseParse(s){
-            //pase an array of words from String s.
-            var a = s.split(' ');
+            //console.log("possible: " + possible);
             
-            return a;
+            //for each of those occurrences, check the full phrase.
+            for(var q = 0; q < possible.length; q++){
+                //if phrase found, push to confirmed
+                if(this.checkForFullPhrase(possible[q], ah) == true){
+                    confirmed.push(possible[q]);
+                }
+            }
+            
+            //console.log("confirmed: " + confirmed);
+            
+            //return confirmed
+            return confirmed;
         }
         
-        findWord(w){
+        checkForFullPhrase(index, phrase){
+            //accepts index number, phrase array.
+            //returns true if phrase found, false if not, -1 if input error.
+            var phraseFound = true;
+            var li = index;
+            var wa = this.readWord(li);
+            
+            //console.log("phrase: " + phrase);
+
+            for(var q = 0; q < phrase.length; q++){
+                
+                
+                
+                //console.log("----wa[0].toUpperCase() before comparison:" + wa[0].toUpperCase());
+                
+                if(wa[0].toUpperCase().trim() != phrase[q].toUpperCase().trim()){
+                    
+                    //console.log("--comparison.  these two words are not equal:");
+                    //console.log("----wa[0].toUpperCase():" + wa[0].toUpperCase());
+                    //console.log("----phrase[q].toUpperCase():" + phrase[q].toUpperCase());
+                    
+                    phraseFound = false;
+                    
+                }else{
+                    
+                    //console.log("--wa[0] in comparison equal to: " + wa[0].toUpperCase());
+                   // console.log("--phrase[q].toUpperCase() in comparison equal to: " + phrase[q].toUpperCase());
+                    
+                    wa = this.readWord(wa[1]);
+                    li = wa[2];
+                    
+                    //console.log("--wa[0] updated after comparison: " + wa[0].toUpperCase());
+                    
+                }
+            }
+            
+            //console.log("phraseFound: " + phraseFound);
+
+            return phraseFound;
+        }
+        
+        getEpisodeStart(index){
+            //accepts index number, usually the start of a sentence inside the episode.
+            //returns beginning index of episode if successful, -1 if not.
+            var searching = true;
+            var li = index;
+            var debugIterator = 0;
+            while(searching === true){
+                
+                debugIterator++;
+                if(debugIterator > 5500){
+                    //console.log("infinite loop safeguard: getEpisodeStart(index): " + index);
+                }
+                
+                if(this.fullString.charAt(li) != "#"){
+                    li--;
+                }else{
+                    return li;
+                }
+            }
+            
+            return -1;
+        }
+        
+        buildSentence(ia){
+            //accepts index start and end array
+            //returns string of full sentence of specified index
+            var s = "";
+            
+            //build string
+            for(var q = ia[0]; q < ia[1]; q++){
+                s += this.fullString.charAt(q);
+            }
+            
+            //return sentence
+            
+            return s;
+        }
+        
+        getEpisodeTitleFromIndex(index){
+            //accepts index number, usually the start of a sentence inside the episode.
+            //returns title of episode if successful, -1 if not.
+            var searching = true;
+            var li = index;
+            var debugIterator = 0;
+            while(searching == true){
+                
+                debugIterator++;
+                if(debugIterator > 5500){
+                    //console.log("infinite loop safeguard: getEpisodeStart(index): " + index);
+                }
+                
+                if(this.fullString.charAt(li) != "#"){
+                    li--;
+                }else{
+                    var wa = this.readSentenceAt(li);
+                    return wa;
+                }
+            }
+            
+            return -1;
+        }
+
+        phraseParse(s) {
+            //pase an array of words from String s.
+            if(typeof s == "string"){
+                var a = s.split(' ');
+                return a;
+            }else{
+                return ["*-*"]
+            } 
+        }
+
+        findWord(w) {
             //search series for word w.
             var includedEpTitles = [];
-            
-            for(var i = 0; i < this.series.episodes.length; i++){
+
+            for (var i = 0; i < this.series.episodes.length; i++) {
                 //every episode, search its words for w.
                 try {
-                    for(var j = 0; j < this.series.episodes[i][0].words.length; j++){
-                        if(w == this.series.episodes[i][0].words[j]){
+                    for (var j = 0; j < this.series.episodes[i][0].words.length; j++) {
+                        if (w == this.series.episodes[i][0].words[j]) {
                             includedEpTitles.push(this.series.episodes[i][0].title)
                             i++; //avoid duplicate results
                         }
                     }
                 } catch (e) {
                     //Catch Statement
+                    console.log("error in findWord");
                     console.log(e);
                     console.log(this.series.episodes[i]);
                 }
             }
-            
+
             return includedEpTitles;
         }
         
-        findEpisodeByTitle(t){
+        buildCallsAndRepliesFromIndices(indexBoundaries){
+            //accepts array of arrays indexBoundaries: [[start, end],[start, end]...]
+            //returns array of objects: calls and replies of sentences at said boundaries
+            var res = [];
+            
+            //
+            for(var q = 0; q < indexBoundaries.length; q++){
+                //get call
+                var r = {};
+                r.call = this.readSentenceAt(indexBoundaries[q][0]);
+                r.reply = this.getNextSentenceOfSentenceAt(indexBoundaries[q][0]);
+                
+                res.push(r);
+            }
+        }
+
+        findEpisodeByTitle(t) {
             //return the episode with the string title t.
-            for(var i = 0; i < this.series.episodes.length; i++){
-                if(t == this.series.episodes[i][0].title){
+            for (var i = 0; i < this.series.episodes.length; i++) {
+                if (t.trim() == this.series.episodes[i][0].title) {
                     return this.series.episodes[i];
                 }
             }
             return -1;
         }
         
-        getMatchEp(e1,e2) {
+        getSentenceStartAndEnd(i){
+            //accepts index i.
+            //returns [start,end]
+            
+            //console.log("--*getSentenceStartAndEnd(i)*--");
+            
+            var debugIterator = 0;
+            
+            var res = [-1,-1];
+            var li = i;
+            var ac = true;
+            
+            var cd = this.fullString.charAt(li);
+            
+            //console.log("li at time of getStart: " + li);
+            //console.log("ca at time of getStart: " + cd);
+            
+            //find start
+            while(ac === true){
+                
+                //console.log(":finding start:  iteration " + debugIterator);
+                //console.log(":finding start:  character " + this.fullString.charAt(li));
+                
+                debugIterator++;
+                
+                if(debugIterator > 65800 || li < 0){
+                    console.log("infinite loop getSentenceStartAndEnd(i) -> find start: " + li);
+                    console.log("active status: " + ac);
+                    ac = false;
+                    break;
+                }
+                
+                
+                //find first break case and set index to 1st letter
+                var ca = this.fullString.charAt(li);
+                if(this.isSentenceBreak(ca) === false){
+                    //console.log("the character '" + ca + "' is not a break case.");
+                    li--;
+                    if(li < 0){ac = false;}
+                }else{
+                    //console.log("break case found: " + ca);
+                    //aaaaa theres a leading space  --okay--
+                    //so like, it goes like this.  Two spaces. ".  T"
+                    var adjust = true;
+                    var db2 = 0;
+                    while(adjust === true){
+                        
+                        db2++;
+                        if(db2 > 2000){
+                            console.log("infinite loop case ingetSentenceStartAndEnd(i) -> find start - > adjust ");
+                            adjust = false;
+                        }
+                        
+                        if(this.isSentenceBreak(this.fullString.charAt(li)) === true || this.isBreak(this.fullString.charAt(li)) === true){
+                            li++;
+                        }else{
+                            res[0] = li + 1;
+                            adjust = false;
+                        }
+                    }
+                    ac = false;
+                    //console.log(ac);
+                }
+                
+            }
+            
+            //i swear to fuck the reason this was bugging out was cause i was using == false and not === false.
+            //fucking js, man
+            
+            //find end
+            debugIterator = 0;
+            li = i; //reset index
+            var findEnd = true;
+            while(findEnd === true){
+                debugIterator++;
+                if(debugIterator > 65800){
+                    console.log("infinite loop getSentenceStartAndEnd(i) -> find start");
+                    findEnd = false;
+                }
+                
+                if(this.isSentenceBreak(this.fullString.charAt(li)) === false){
+                    li++;
+                }else{
+                    if(this.fullString.charAt(li) == '"'){
+                        li++;
+                    }
+                    res[1] = li + 1;
+                    findEnd = false;
+                }
+                
+            }
+            
+            //return results
+            return res;
+        }
+
+        getMatchEp(e1, e2) {
             //get matches for two episodes specified by title instead of doing alllll of them every time.
             //returns episode for use as matching-episode.
             //accepts two Episode objects as arguments.
             var e0 = new Episode();
-            try{
+            try {
                 e0.setTitle(e2[0].title);
                 e0.setWords(e1[0].getMatches(e2[0]));
-            }catch(e){console.log(e);}
-            
-            return [e0,e0[1]];
-            
-        } 
-
-        buildAllMatches() {
-            //build matching words for each episode.  this takes way too long.
-            for (var i = 0; i < this.series.episodes.length; i++) {
-                for (var j = 0; j < this.series.episodes.length; j++) {
-                    if (i != j) {
-                        var ne = new Episode();
-                        ne.setTitle(this.series.episodes[j][0].title);
-                        ne.setWords(this.series.episodes[i][0].getMatches(this.series.episodes[j][0]));
-                        this.series.episodes[i][0].addEpisode(ne); //consider renaming addEpisode to addMatchingEpisode, because it technically adds a Matching Episode
-                    }
-                }
+            } catch (e) {
+                console.log(e);
             }
+
+            return [e0, e0[1]];
+
         }
 
         buildSeries(i) {
@@ -302,11 +594,12 @@
         }
 
         buildEpisode(i) {
-            //build episode starting at index i.  return Episode object and new index.
+            //build episode starting at index i, the start of the episode.  return Episode object and new index.
             //initialize episode
             var lisa = new Episode(); //lisa needs braces
             //dental plan
             var li = i;
+            lisa.index = i;
             //console.log("buildEpisode(i): " + i);
             var et = this.readTitle(li);
             //console.log("readTitle(i) @ i= " + i + ": " + et[0] + ", " + et[1]);
@@ -320,13 +613,107 @@
             li = ct[1];
             return [lisa, li];
         }
+
+        readSentenceAt(index) {
+            var s = "";
+            var li = index;
+            var active = true;
+
+            var debugIterator = 0;
+
+            //account for leading break cases
+            while (active == true) {
+
+                if (debugIterator > 512) {
+                    active = false; //infinite loop safeguard
+                    console.log("debug iterator error: readSentenceAt(index)");
+                }
+
+                var ca = this.fullString.charAt(li);
+                var cb = (this.isSentenceBreak(ca) == true || this.isBreak(ca)[2] == true || this.isBreak(ca)[0] == true);
+
+                if (cb == true) {
+                    li++;
+                } else {
+                    //console.log("this.isSentenceBreak(ca) == false || this.isBreak(ca)[0] == false");
+                    active = false;
+                }
+            }
+
+            debugIterator = 0; //reset debug iterator
+
+            active = true;
+
+            //build string
+            while (active === true) {
+                debugIterator++;
+                if (debugIterator > 512) {
+                    active = false; //infinite loop safeguard
+                    console.log("debug iterator error: readSentenceAt(index) build string");
+                }
+
+                var ca = this.fullString.charAt(li);
+                var cb = (this.isSentenceBreak(ca) == false && this.isBreak(ca)[2] == false);
+
+                if (cb == true) {
+                    s += ca;
+                    li++;
+                } else {
+                    //console.log("this.isSentenceBreak(ca) == true || this.isBreak(ca)[2] == true");
+                    s += ca;
+                    active = false;
+                }
+            }
+
+            //account for trailing break cases
+            active = true;
+            debugIterator = 0;
+
+            while (active === true) {
+
+                debugIterator++;
+                if (debugIterator > 512) {
+                    console.log("debug iterator: readSentence, account for trailing break cases");
+                    active = false;
+                }
+
+                var ca = this.fullString.charAt(li);
+                var cb = (this.isSentenceBreak(ca) == true || this.isBreak(ca)[2] == true);
+
+                if (cb == true) {
+                    li++;
+                } else {
+                    active = false;
+                }
+            }
+
+            return [s, li];
+
+        }
+
+        getNextSentenceOfSentenceAt(index) {
+            var m = this.readSentenceAt(this.readSentenceAt(index)[1]);
+
+            return m;
+        }
+
         readTitle(i) {
             //read title starting at index i.  returns title and end-of-title index.
             var active = true;
             var t = "";
             var c = "";
             var li = i; //fuc u
+
+            var debugIterator = 0;
+
             while (active == true) {
+
+                debugIterator++;
+                if (debugIterator > 512) {
+                    console.log("readTitle() debugIterator");
+                    active = false;
+                }
+
                 var q = this.fullString.charAt(li);
                 var b = this.isBreak(q);
                 if (q === "#") {
@@ -341,15 +728,75 @@
                     active = false;
                 }
             }
+
+            //account for trailing break cases
+            //account for trailing break cases
+            active = true;
+            debugIterator = 0;
+
+            while (active == true) {
+
+                debugIterator++;
+                if (debugIterator > 512) {
+                    console.log("debug iterator: readSentence, account for trailing break cases");
+                    active = false;
+                }
+
+                var ca = this.fullString.charAt(li);
+                var cb = (this.isSentenceBreak(ca) == true || this.isBreak(ca)[2] == true || this.isBreak[1] == true);
+
+                if (cb == true) {
+                    li++;
+                } else {
+                    active = false;
+                }
+            }
+
             return [t, li];
         }
 
         readWord(i) {
             //read word w starting at index i while active, and return word and word-end index.
+
             var active = true;
             var w = "";
             var li = i; //local index because last time it was weird
+
+            var debugIterator = 0;
+
+            //account for leading break cases
             while (active == true) {
+                debugIterator++;
+                if (debugIterator > 512) {
+                    active = false; //infinite loop safeguard
+                    //console.log("debug iterator error: readWord(i): " + li);
+                    //console.log("debug iterator error: this.fullString.charAt(li): " + this.fullString.charAt(li));
+                }
+
+                var ca = this.fullString.charAt(li);
+                var cb = (this.isBreak(ca)[2] == true || this.isBreak(ca)[1] == true || this.isBreak(ca)[0] == true);
+
+                if (cb == true) {
+                    li++;
+                } else {
+                    //console.log("this.isSentenceBreak(ca) == false || this.isBreak(ca)[0] == false");
+                    active = false;
+                }
+            }
+
+            debugIterator = 0; //reset debug iterator
+
+            active = true;
+
+            //build string
+            while (active == true) {
+
+                debugIterator++;
+                if (debugIterator > 512) {
+                    console.log("debug iterator error: readWord(i) build string");
+                    active = false;
+                }
+
                 var q = this.fullString.charAt(li); //break into substrings for later versions
                 var b = this.isBreak(q);
                 if (b[0] == false && b[1] == false) {
@@ -358,13 +805,36 @@
                 } else if (b[0] == true || b[1] == true || b[2] == true) {
                     active = false;
                 } else {
-                    //console.log("readWord(i) while(){} default action for char " + q);
+                    console.log("readWord(i) while(){} default action for char " + q);
+                }
+            }
+
+            //account for trailing break cases
+            //account for trailing break cases
+            active = true;
+            debugIterator = 0;
+
+            while (active == true) {
+
+                debugIterator++;
+                if (debugIterator > 512) {
+                    console.log("debug iterator: readSentence, account for trailing break cases");
+                    active = false;
+                }
+
+                var ca = this.fullString.charAt(li);
+                var cb = (this.isSentenceBreak(ca) == true || this.isBreak(ca)[2] == true);
+
+                if (cb == true) {
+                    li++;
+                } else {
+                    active = false;
                 }
             }
 
             //console.log("w: " + w);
 
-            return [w, li];
+            return [w, li, i]; //now returns i as well, the start index of the word.
         }
 
         readBook(i) {
@@ -417,11 +887,16 @@
         }
 
         isBreak(c) {
-            //determine if character c is a break class.
+            //determine if character c is a break case.
             return [(c === " " || c === "↵" || c === ' ' || c === " "),
-                ([".", ",", "!", "?", "&", ":", ";", "(", ")", '.', ',', ':', ';', '?', '!', '&', '\n', "[", "]", '[', ']'].includes(c)),
+                ([".", ",", "!", "?", "&", ":", ";", "(", ")", '.', ',', ':', ';','?', '!', '&', '\n', "[", "]", '[', ']', "", '', NaN, undefined, null].includes(c)),
                 (["#", "^", "|"].includes(c))
             ];
+        }
+
+        isSentenceBreak(c) {
+            //determine if character c is a sentence break case.
+            return (c == "." || c == "!" || c == "?" || c == ";");
         }
     }
 
@@ -430,7 +905,7 @@
         constructor() {
             this.title = "";
             this.words = [];
-            this.matchingEpisodes = []; //modified episode objects with its .words sections used for matching words.
+            this.index = null;
             //so like,
             //ep.1 will have a 'match' episode for every other episode.
         }
@@ -539,7 +1014,7 @@
             slen = s.length; //store the length
             bort.setString(s);
             bort.buildSeries(0);
-            bort.buildInterface("episode-1-dropdown", "episode-2-dropdown","search-bar-space");
+            bort.buildInterface("episode-1-dropdown", "episode-2-dropdown", "search-bar-space");
             t1 = performance.now(); //...and end of function.
         }
         f.readAsText(this.files[0]); //this executes first...
