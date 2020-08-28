@@ -2,8 +2,8 @@
 Finds common words between two episodes of The Simpsons.
 Use included text file, "the-impson-family.txt", which is a transcript of seasons 1 through 10 of The Simpsons.
 
-It will randomly throw a null pointer exception from time to time, but a refresh solves the bug.
-
 New: Specific word search.
 
 New: Specific phrase search.
+
+Next: Optimization.
