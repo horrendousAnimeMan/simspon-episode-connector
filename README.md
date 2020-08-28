@@ -7,3 +7,5 @@ New: Specific word search.
 New: Specific phrase search.
 
 Next: Optimization.
+
+KNOWN BUGS: Sometimes, the first word of a phrase will be ommitted seemingly at random.
