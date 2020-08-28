@@ -49,10 +49,7 @@
                 <!--<button onclick="bort.buildSeries(0);">Read File</button><br />-->
             </div>
         </div>
-        <div class="row ep" id="episode-1-dropdown"></div>
-        <div class="row ep" id="episode-2-dropdown"></div>
-        <div class="row ep" id="button-space"></div>
-        <div class="row"></div>
+
         <div class="row ps" id="phrase-search-bar-space"></div>
         <div class="row ps" id="phrase-search-button-space"></div>
     </div>
@@ -73,6 +70,7 @@
             //build dropdowns for DOM element ID's e1, e2.
             //build search bar for element id e3.
             //in this case, document.getElementById("e1");
+            /*
             for (var i = 1; i <= 2; i++) {
                 var s = "Episode " + i + ": <select id='";
                 s += "episode-dropdown-";
@@ -92,14 +90,16 @@
                     document.getElementById(e2).innerHTML = s;
                 }
             }
+            
             document.getElementById("button-space").innerHTML = "<button onclick='bort.epToEpButtonHandler();'>Find Quantum Entanglements</button>";
+            */
             /*
             //also include the search bar for specific-word search.
             document.getElementById(e3).innerHTML = "Specific Word Search: <input type='text' id='spec-word-search-bar'>";
             document.getElementById("search-button-space").innerHTML = "<button onclick='bort.specWordButtonHandler();'>Find Word</button>";
             */
             //aaaaand the phrase search.  will combine in next build.
-            document.getElementById("phrase-search-bar-space").innerHTML = "Phrase Search: <input type='text' id='phrase-search-bar'>";
+            document.getElementById("phrase-search-bar-space").innerHTML = "Phrase Search: <input type='text' id='phrase-search-bar' size='50'>";
             document.getElementById("phrase-search-button-space").innerHTML = "<button onclick='bort.phraseButtonHandler();'>Find Phrase</button>";
         }
 
