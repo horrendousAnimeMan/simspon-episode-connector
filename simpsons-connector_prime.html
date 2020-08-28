@@ -107,9 +107,18 @@
             //
             var p = document.getElementById("phrase-search-bar").value;
             var b = this.findPhraseIndexesInSeries(p); //get indices!
+            
+            if(b[0] == "--phrase not found in series--"){
+                return -1;
+            }
+            
             var q = 0;
             var ac = true;
             var res = [];
+            
+            var tt = new PerformanceTracker();
+            tt.setName("phraseButtonHandler()");
+            tt.setStart();
             
             //sketch out data structure:
             /*
@@ -120,22 +129,33 @@
             */
             
             while(ac === true){
+                console.log("is this whats doing it");
                 var doot = [];
-                
-                if(q >= b.length - 1){
-                    ac = false;
+                console.log("what about this");
+                if(b.length < 1){
+                    console.log("what about this where b.length = 0");
+                    ac = false; //no result
+                }else if(b.length >= 1){
+                    console.log("okay, else if(b.length >= 1) for b = " + b);
+                    doot.push(this.readTitle(this.getEpisodeStart(b[q]))[0]);
+                    doot.push(this.buildSentence(this.getSentenceStartAndEnd(b[q])));
+                    doot.push(this.getNextSentenceOfSentenceAt(b[q]));
+                    res.push(doot);
+                    console.log("okay, got to the end of that");
                 }
                 
-                doot.push(this.readTitle(this.getEpisodeStart(b[q]))[0]);
-                doot.push(this.buildSentence(this.getSentenceStartAndEnd(b[q])));
-                doot.push(this.getNextSentenceOfSentenceAt(b[q]));
-                res.push(doot);
+                if(q >= b.length - 1){
+                    //end
+                    ac = false;
+                }
                 
                 q++; //                                             //ITERATOR
             }
             
-            //i swear to god
             
+            tt.setEnd();
+            tt.displayResult();
+            tt.setActive(false);
             
             this.buildNewPhraseSection(res, "output");
             
@@ -184,65 +204,16 @@
             }
             
             document.getElementById(output).innerHTML = s;
-        }
-        
-        buildHTMLPhrase(p, a, oe) {
-            //build formatted html string for phrase search.
-            //p: phrase. a: result array.  oe:output element.
-            var s = "<h2>" + p + "</h2><strong>Included in:</strong><p>";
-            for (var i = 0; i < a.length; i++) {
-                s += "" + a[i] + "<br />";
-            }
-            s += "</p>";
-
-            document.getElementById(oe).innerHTML = s;
-        }
-
-        buildHTMLSpecWd(w, a, oe) {
-            //build the formatted html string for a specific word search.
-            //w: word searched, a:result array, oe:output element
-            var s = "<h2>" + w + "</h2>";
-            s += "<strong>Included in:</strong><p>";
-            for (var i = 0; i < a.length; i++) {
-                s += a[i] + "<br />";
-            }
-            s += "</p>";
-
-            document.getElementById(oe).innerHTML = s;
-        }
-
-        previousNonSentenceBreakIndex(fsi) {
-            //returns next non-break index.
-            var breakFound = false;
-            var i = fsi;
-            while (breakFound == false) {
-                if (this.isSentenceBreak(fullString.charAt(i)) == true) {
-                    i--;
-                } else {
-                    breakFound = true;
-                }
-            }
-
-            return i + 1;
-        }
-
-        nextNonSentenceBreakIndex(fsi) {
-            //returns next non-break index.
-            console.log("nextNonSentenceBreakIndex: " + fsi);
-            var breakFound = false;
-            var i = fsi;
-            while (breakFound == false) {
-                if (this.isSentenceBreak(fullString.charAt(i)) == true) {
-                    i++;
-                } else {
-                    breakFound = true;
-                }
-            }
-
-            return i - 1;
-        }
+        }      
 
         findPhraseIndexesInSeries(a) {
+            var tt = new PerformanceTracker();
+            
+            tt.setName("findPhraseIndexesInSeries(a)");
+            tt.setStart();
+            
+            console.log("beginning index search for " + a);
+            
             //accepts string literal, a.
             //returns full phrase start indices
             var ah = this.phraseParse(a);
@@ -293,6 +264,10 @@
                     confirmed.push(possible[q]);
                 }
             }
+            
+            tt.setEnd();
+            tt.displayResult();
+            tt.setActive(false);
             
             //console.log("confirmed: " + confirmed);
             
@@ -436,22 +411,6 @@
 
             return includedEpTitles;
         }
-        
-        buildCallsAndRepliesFromIndices(indexBoundaries){
-            //accepts array of arrays indexBoundaries: [[start, end],[start, end]...]
-            //returns array of objects: calls and replies of sentences at said boundaries
-            var res = [];
-            
-            //
-            for(var q = 0; q < indexBoundaries.length; q++){
-                //get call
-                var r = {};
-                r.call = this.readSentenceAt(indexBoundaries[q][0]);
-                r.reply = this.getNextSentenceOfSentenceAt(indexBoundaries[q][0]);
-                
-                res.push(r);
-            }
-        }
 
         findEpisodeByTitle(t) {
             //return the episode with the string title t.
@@ -489,8 +448,8 @@
                 debugIterator++;
                 
                 if(debugIterator > 65800 || li < 0){
-                    console.log("infinite loop getSentenceStartAndEnd(i) -> find start: " + li);
-                    console.log("active status: " + ac);
+                    //console.log("infinite loop getSentenceStartAndEnd(i) -> find start: " + li);
+                    //console.log("active status: " + ac);
                     ac = false;
                     break;
                 }
@@ -512,7 +471,7 @@
                         
                         db2++;
                         if(db2 > 2000){
-                            console.log("infinite loop case ingetSentenceStartAndEnd(i) -> find start - > adjust ");
+                            //console.log("infinite loop case ingetSentenceStartAndEnd(i) -> find start - > adjust ");
                             adjust = false;
                         }
                         
@@ -539,7 +498,7 @@
             while(findEnd === true){
                 debugIterator++;
                 if(debugIterator > 65800){
-                    console.log("infinite loop getSentenceStartAndEnd(i) -> find start");
+                    //console.log("infinite loop getSentenceStartAndEnd(i) -> find start");
                     findEnd = false;
                 }
                 
@@ -631,7 +590,7 @@
 
                 if (debugIterator > 512) {
                     active = false; //infinite loop safeguard
-                    console.log("debug iterator error: readSentenceAt(index)");
+                    //console.log("debug iterator error: readSentenceAt(index)");
                 }
 
                 var ca = this.fullString.charAt(li);
@@ -715,7 +674,7 @@
 
                 debugIterator++;
                 if (debugIterator > 512) {
-                    console.log("readTitle() debugIterator");
+                    //console.log("readTitle() debugIterator");
                     active = false;
                 }
 
@@ -743,7 +702,7 @@
 
                 debugIterator++;
                 if (debugIterator > 512) {
-                    console.log("debug iterator: readSentence, account for trailing break cases");
+                    //console.log("debug iterator: readSentence, account for trailing break cases");
                     active = false;
                 }
 
@@ -798,7 +757,7 @@
 
                 debugIterator++;
                 if (debugIterator > 512) {
-                    console.log("debug iterator error: readWord(i) build string");
+                    //console.log("debug iterator error: readWord(i) build string");
                     active = false;
                 }
 
@@ -810,7 +769,7 @@
                 } else if (b[0] == true || b[1] == true || b[2] == true) {
                     active = false;
                 } else {
-                    console.log("readWord(i) while(){} default action for char " + q);
+                    //console.log("readWord(i) while(){} default action for char " + q);
                 }
             }
 
@@ -823,7 +782,7 @@
 
                 debugIterator++;
                 if (debugIterator > 512) {
-                    console.log("debug iterator: readSentence, account for trailing break cases");
+                    //console.log("debug iterator: readSentence, account for trailing break cases");
                     active = false;
                 }
 
@@ -976,7 +935,7 @@
             this.t0 = null;
             this.t1 = null;
             this.name = "";
-            this.active = false;
+            this.active = true;
         }
 
         setActive(b) {
@@ -997,7 +956,7 @@
 
         displayResult() {
             if (this.active == true) {
-                console.log("" + this.name + ": " + (this.t1 - this.t0) + "ms");
+                console.log("" + this.name + ": " + (this.t1 - this.t0).toFixed(5) + "ms");
                 this.setActive(false);
             }
         }
